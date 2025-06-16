@@ -1,11 +1,11 @@
 from typing import Annotated
-from database import init_db, get_session, lifespan
+from database import get_session, lifespan
 from fastapi import FastAPI, Depends, UploadFile, File
 from sqlmodel import Session, select
 from models import Dataset
 from schemas import DatasetInfo, DatasetBasicInfo
-from utils import save_csv, in_memory_dataframes
-from fastapi.responses import JSONResponse
+from utils import save_csv, in_memory_dataframes, to_excel
+from fastapi.responses import JSONResponse, FileResponse
 import os
 
 
@@ -31,7 +31,7 @@ async def list_dataset(session: Session = Depends(get_session)):
 
 
 @app.get("/datasets/{dataset_id}/", response_model=DatasetInfo)
-async def info_dataset(dataset_id: str, session: Session = Depends(get_session)):
+async def info_dataset(dataset_id: int, session: Session = Depends(get_session)):
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
@@ -39,7 +39,7 @@ async def info_dataset(dataset_id: str, session: Session = Depends(get_session))
 
 
 @app.delete("/datasets/{dataset_id}/")
-async def delete_dataset(dataset_id: str, session: Session = Depends(get_session)):
+async def delete_dataset(dataset_id: int, session: Session = Depends(get_session)):
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
@@ -48,3 +48,14 @@ async def delete_dataset(dataset_id: str, session: Session = Depends(get_session
     session.delete(dataset)
     session.commit()
     return JSONResponse(status_code=200, content={"detail": "Dataset deleted successfully"})
+
+@app.get("/datasets/{dataset_id}/excel/")
+async def export_dataset(dataset_id: int, session: Session = Depends(get_session)):
+    dataset = session.get(Dataset, dataset_id)
+    if not dataset:
+        return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
+    filepath = to_excel(dataset)
+    filename = filepath.split("/")[-1]
+    return FileResponse(filepath,
+                        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        filename=filename)

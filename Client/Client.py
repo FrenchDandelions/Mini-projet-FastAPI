@@ -116,10 +116,24 @@ class Client:
 
 
     @staticmethod
-    def export_dataset(ID: str = None):
+    def export_dataset(url: str = "http://localhost:8000",
+                        endpoint: str = "/datasets/",
+                        ID: str = None):
         if ID is None:
             raise ValueError("No dataset id was given")
-        return
+        endpoint += ID.rstrip("/") + "/excel/"
+        response = send_request(base_url=url,
+                                endpoint=endpoint)
+        print("Response status code:", response.status_code)
+        content_disposition = response.headers.get("content-disposition", "")
+        filename = "output.xlsx" #default filename just in case
+        if "filename=" in content_disposition:
+            filename = content_disposition.split("filename=")[1].strip('"')
+        print(f"Saving file as: {filename}")
+        with open(filename, "wb") as f:
+            f.write(response.content)
+        print(f"File saved: {filename}")
+        return response
 
 
     @staticmethod
