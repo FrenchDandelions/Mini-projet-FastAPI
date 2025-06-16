@@ -6,6 +6,7 @@ from models import Dataset
 from schemas import DatasetInfo, DatasetBasicInfo
 from utils import save_csv, in_memory_dataframes
 from fastapi.responses import JSONResponse
+import os
 
 
 app = FastAPI(lifespan=lifespan)
@@ -36,3 +37,14 @@ async def info_dataset(dataset_id: str, session: Session = Depends(get_session))
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
     return dataset
 
+
+@app.delete("/datasets/{dataset_id}/")
+async def delete_dataset(dataset_id: str, session: Session = Depends(get_session)):
+    dataset = session.get(Dataset, dataset_id)
+    if not dataset:
+        return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
+    os.remove(dataset.filepath)
+    in_memory_dataframes.pop(dataset.id)
+    session.delete(dataset)
+    session.commit()
+    return JSONResponse(status_code=200, content={"detail": "Dataset deleted successfully"})

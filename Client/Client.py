@@ -100,10 +100,19 @@ class Client:
 
 
     @staticmethod
-    def delete_dataset(ID: str = None):
+    def delete_dataset(url: str = "http://localhost:8000",
+                        endpoint: str = "/datasets/",
+                        ID: str = None):
         if ID is None:
             raise ValueError("No dataset id was given")
-        return
+        endpoint += ID.rstrip("/") + "/"
+        response = send_request(base_url=url,
+                                endpoint=endpoint,
+                                method="delete")
+        print("Response status code:", response.status_code)
+        print("Body:")
+        print(response.json())
+        return response.json()
 
 
     @staticmethod
