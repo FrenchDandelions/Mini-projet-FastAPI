@@ -10,3 +10,10 @@ class DatasetInfo(BaseModel):
     
     class Config:
         orm_mode = True
+
+class DatasetBasicInfo(BaseModel):
+    id: int
+    filename: str
+
+    class Config:
+        orm_mode = True
