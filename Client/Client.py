@@ -20,7 +20,7 @@ class Client:
             res = method(path = self.args.file)
         else:
             res = method()
-        print(res)
+        # print(res)
         return
 
 
@@ -39,7 +39,7 @@ class Client:
         Returns:
             dict: JSON response containing the list of the datasets.
         """
-        response = send_request(url=url, endpoint=endpoint)
+        response = send_request(base_url=url, endpoint=endpoint)
         print("Response status code:", response.status_code)
         print("Body:")
         print(response.json())
@@ -71,8 +71,9 @@ class Client:
         elif os.path.exists(path) is False:
             raise FileNotFoundError("No file found")
         with open(path, 'rb') as file:
-            files = {'file': file.read()}
-            print(file.read())
+            files = {
+                'file': (path.split('/')[-1], file, "text/csv")
+                }
             response = send_request(base_url=url,
                                     endpoint=endpoint,
                                     method="post",
