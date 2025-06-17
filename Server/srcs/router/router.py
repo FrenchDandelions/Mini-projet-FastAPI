@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from sqlmodel import Session, select
 from models import Dataset
 from schemas import DatasetInfo, DatasetBasicInfo
-from utils import save_csv, in_memory_dataframes, to_excel
+from utils import save_csv, in_memory_dataframes, to_excel, to_json
 from fastapi.responses import JSONResponse, FileResponse
 import os
 
@@ -56,7 +56,21 @@ async def export_dataset(dataset_id: int, session: Session = Depends(get_session
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
     filepath = to_excel(dataset)
+    if not filepath:
+        return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
     filename = filepath.split("/")[-1]
     return FileResponse(filepath,
                         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         filename=filename)
+
+
+@router.get("/{dataset_id}/stats/")
+async def export_dataset(dataset_id: int, session: Session = Depends(get_session)):
+    dataset = session.get(Dataset, dataset_id)
+    if not dataset:
+        return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
+    json = to_json(dataset)
+    if not json:
+        return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
+    return JSONResponse(content=json)
+    

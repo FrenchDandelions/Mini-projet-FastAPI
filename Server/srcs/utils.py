@@ -24,7 +24,9 @@ def save_csv(file) -> (str | str | int | pd.DataFrame):
 
 
 def to_excel(dataset: Dataset) -> any:
-    df = in_memory_dataframes[dataset.id]
+    df = in_memory_dataframes.get(dataset.id, None)
+    if df is None:
+        return None
     filename = dataset.filename
     filename = filename.removesuffix(".csv")
     sheetname = str(filename)
@@ -32,3 +34,10 @@ def to_excel(dataset: Dataset) -> any:
     if not os.path.isfile(filename):
         df.to_excel(filename, sheet_name=sheetname)
     return filename
+
+
+def to_json(dataset: Dataset) -> any:
+    df = in_memory_dataframes.get(dataset.id, None)
+    if df is None:
+        return None
+    return df.describe().to_json()
