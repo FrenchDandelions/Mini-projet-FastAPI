@@ -41,6 +41,9 @@ class Client:
         """
         response = send_request(base_url=url, endpoint=endpoint)
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
         print("Body:")
         print(response.json())
         return response
@@ -79,6 +82,9 @@ class Client:
                                     method="post",
                                     files=files)
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
         print("Body:")
         print(response.json())
         return response
@@ -94,6 +100,9 @@ class Client:
         response = send_request(base_url=url,
                                 endpoint=endpoint)
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
         print("Body:")
         print(response.json())
         return response
@@ -110,6 +119,10 @@ class Client:
                                 endpoint=endpoint,
                                 method="delete")
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
+
         print("Body:")
         print(response.json())
         return response
@@ -125,6 +138,9 @@ class Client:
         response = send_request(base_url=url,
                                 endpoint=endpoint)
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
         content_disposition = response.headers.get("content-disposition", "")
         filename = "output.xlsx" #default filename just in case
         if "filename=" in content_disposition:
@@ -146,6 +162,9 @@ class Client:
         response = send_request(base_url=url,
                                 endpoint=endpoint)
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
         print("Body:")
         print(response.json())
         return response
@@ -161,6 +180,9 @@ class Client:
         response = send_request(base_url=url,
                                 endpoint=endpoint)
         print("Response status code:", response.status_code)
+        if response.status_code != 200:
+            print(response.json)
+            return response
         content_disposition = response.headers.get("content-disposition", "")
         filename = "output.pdf" #default filename just in case (again)
         if "filename=" in content_disposition:

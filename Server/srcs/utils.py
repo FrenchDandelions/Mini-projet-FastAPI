@@ -1,12 +1,13 @@
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 # from pandas.api.types import is_bool_dtype, is_object_dtype, is_categorical_dtype
-import uuid
-import os
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import io
 from models import Dataset
+from limiter import get_file_lock
+import io
+import uuid
+import os
 
 
 SAVE_DIR=os.environ["DATA_DIR"]
@@ -26,16 +27,18 @@ def save_csv(file) -> (str | str | int | pd.DataFrame):
     return filename, filepath, len(content), df
 
 
-def to_excel(dataset: Dataset) -> str | None:
+async def to_excel(dataset: Dataset) -> str | None:
     df = in_memory_dataframes.get(dataset.id, None)
     if df is None:
         return None
-    filename = dataset.filename
-    filename = filename.removesuffix(".csv")
-    sheetname = str(filename)
-    filename += f"_id_{dataset.id}.xlsx"
-    if not os.path.isfile(filename):
-        df.to_excel(filename, sheet_name=sheetname)
+    lock = await get_file_lock(dataset_id=dataset.id)
+    async with lock:
+        filename = dataset.filename
+        filename = filename.removesuffix(".csv")
+        sheetname = str(filename)
+        filename += f"_id_{dataset.id}.xlsx"
+        if not os.path.isfile(filename):
+            df.to_excel(filename, sheet_name=sheetname)
     return filename
 
 
@@ -77,34 +80,36 @@ def plot_numerical_data(ax, data, column):
     # return
 #
 #
-def to_pdf(dataset) -> str | None:
+async def to_pdf(dataset) -> str | None:
     df = in_memory_dataframes.get(dataset.id, None)
     if df is None:
         return None
 
-    filename = dataset.filename.removesuffix(".csv") + f"_id_{dataset.id}.pdf"
-    if os.path.isfile(filename):
-        return filename
-    with PdfPages(filename) as pdf:
-        for column in df.columns:
-            data = df[column].dropna()
-            if data.empty:
-                continue
-            fig, ax = plt.subplots(figsize=(8, 5))
-            if is_numeric_dtype(data):
-                plot_numerical_data(ax=ax, data=data, column=column)
-            # test with bool data types, unquote the function and condition
-            # to test them
-            # elif is_bool_dtype(data):
-                # plot_boolean_data(ax=ax, data=data, column=column)
-            # test with object and category data types, unquote the function
-            # and condition to test them
-            # elif is_object_dtype(data) or is_categorical_dtype(data):
-                # plot_other_data(ax=ax, data=data, column=column)
-            else:
+    lock = await get_file_lock(dataset_id=dataset.id)
+    async with lock:
+        filename = dataset.filename.removesuffix(".csv") + f"_id_{dataset.id}.pdf"
+        if os.path.isfile(filename):
+            return filename
+        with PdfPages(filename) as pdf:
+            for column in df.columns:
+                data = df[column].dropna()
+                if data.empty:
+                    continue
+                fig, ax = plt.subplots(figsize=(8, 5))
+                if is_numeric_dtype(data):
+                    plot_numerical_data(ax=ax, data=data, column=column)
+                # test with bool data types, unquote the function and condition
+                # to test them
+                # elif is_bool_dtype(data):
+                    # plot_boolean_data(ax=ax, data=data, column=column)
+                # test with object and category data types, unquote the function
+                # and condition to test them
+                # elif is_object_dtype(data) or is_categorical_dtype(data):
+                    # plot_other_data(ax=ax, data=data, column=column)
+                else:
+                    plt.close(fig)
+                    continue
+                fig.tight_layout()
+                pdf.savefig(fig)
                 plt.close(fig)
-                continue
-            fig.tight_layout()
-            pdf.savefig(fig)
-            plt.close(fig)
     return filename
