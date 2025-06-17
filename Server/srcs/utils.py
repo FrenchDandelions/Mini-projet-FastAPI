@@ -8,6 +8,7 @@ from limiter import get_file_lock
 import io
 import uuid
 import os
+import re
 
 
 SAVE_DIR=os.environ["DATA_DIR"]
@@ -51,6 +52,7 @@ async def to_excel(dataset: Dataset) -> str | None:
         filename = dataset.filename
         filename = filename.removesuffix(".csv")
         sheetname = str(filename)
+        sheetname = re.sub(r'[:\\/?*\[\]]', '_', sheetname)
         filename += f"_id_{dataset.id}.xlsx"
         if not os.path.isfile(filename):
             df.to_excel(filename, sheet_name=sheetname)

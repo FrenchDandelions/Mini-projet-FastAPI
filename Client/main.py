@@ -6,7 +6,7 @@ if __package__ is None:
     # Set the package name to Client, so relative imports inside Client/ work
     __package__ = "Client"
 
-from .Client import Client
+from Client import Client
 
 if __name__ == "__main__":
     try:
