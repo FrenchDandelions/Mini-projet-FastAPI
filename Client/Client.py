@@ -152,7 +152,21 @@ class Client:
 
 
     @staticmethod
-    def plot_dataset(ID: str = None):
+    def plot_dataset(url: str = "http://localhost:8000",
+                        endpoint: str = "/datasets/",
+                        ID: str = None):
         if ID is None:
             raise ValueError("No dataset id was given")
-        return
+        endpoint += ID.rstrip("/") + "/plot/"
+        response = send_request(base_url=url,
+                                endpoint=endpoint)
+        print("Response status code:", response.status_code)
+        content_disposition = response.headers.get("content-disposition", "")
+        filename = "output.pdf" #default filename just in case (again)
+        if "filename=" in content_disposition:
+            filename = content_disposition.split("filename=")[1].strip('"')
+        print(f"Saving file as: {filename}")
+        with open(filename, "wb") as f:
+            f.write(response.content)
+        print(f"File saved: {filename}")
+        return response
