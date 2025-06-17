@@ -15,6 +15,15 @@ in_memory_dataframes={int: pd.DataFrame}
 
 
 def save_csv(file) -> (str | str | int | pd.DataFrame):
+    """
+    Save uploaded CSV file to disk and load it as a DataFrame.
+    
+    Returns:
+        filename (str): original filename
+        filepath (str): path where file is saved
+        size (int): size in bytes
+        df (pd.DataFrame): loaded dataframe
+    """
     content = file.file.read()
     filename = file.filename
     df = pd.read_csv(io.BytesIO(content))
@@ -28,6 +37,12 @@ def save_csv(file) -> (str | str | int | pd.DataFrame):
 
 
 async def to_excel(dataset: Dataset) -> str | None:
+    """
+    Export dataset as an Excel file.
+    
+    Returns:
+        filepath (str): path to the Excel file or None if dataset not found.
+    """
     df = in_memory_dataframes.get(dataset.id, None)
     if df is None:
         return None
@@ -43,6 +58,12 @@ async def to_excel(dataset: Dataset) -> str | None:
 
 
 def to_json(dataset: Dataset) -> any:
+    """
+    Generate descriptive statistics of dataset as JSON.
+    
+    Returns:
+        JSON string or None if dataset not found.
+    """
     df = in_memory_dataframes.get(dataset.id, None)
     if df is None:
         return None
@@ -50,6 +71,14 @@ def to_json(dataset: Dataset) -> any:
 
 
 def plot_numerical_data(ax, data, column):
+    """
+    Plot histogram with mean and median lines for numerical data.
+    
+    Args:
+        ax (matplotlib.axes.Axes): plot axes
+        data (pd.Series): numerical data to plot
+        column (str): column name
+    """
     unique_vals = data.nunique()
     bins = unique_vals if unique_vals > 1 else 1
     ax.hist(data, bins=bins, edgecolor='black')
@@ -81,6 +110,12 @@ def plot_numerical_data(ax, data, column):
 #
 #
 async def to_pdf(dataset) -> str | None:
+    """
+    Generate PDF with histograms of all numerical columns.
+    
+    Returns:
+        filepath (str): path to the PDF file or None if dataset not found.
+    """
     df = in_memory_dataframes.get(dataset.id, None)
     if df is None:
         return None

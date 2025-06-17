@@ -37,6 +37,8 @@ class Argument():
         plot = subparsers.add_parser("plot", help="Generate PDF containing the list of histograms of all the num")
         plot.add_argument("id", type=str, help="The ID of the dataset")
 
+        if arg:
+            arg = arg.split()
         self.args = parser.parse_args(arg)
         self.command = self.args.command
         self.dataset_id = getattr(self.args, "id", None)
@@ -57,7 +59,7 @@ def send_request(base_url : str = "http://localhost:8000",
     Parameters:
         base_url (str) : URL of the server.
         endpoint (str) : API endpoint.
-        method   (str) : HTTP method ('get', 'post', 'delete', 'put')
+        method   (str) : HTTP method ('get', 'post', 'delete')
         headers  (dict): (Optional) Header to include.
         json_body(dict): (Optional) JSON body.
         data_body(dict): (Optional) Form data body.
@@ -71,8 +73,9 @@ def send_request(base_url : str = "http://localhost:8000",
         'get' : requests.get,
         'post' : requests.post,
         'delete' : requests.delete,
-        'put' : requests.put
     }
+    if method not in req_method.keys():
+        raise NotImplementedError("Method not implemented")
     response = req_method[method](
         url,
         headers=headers,

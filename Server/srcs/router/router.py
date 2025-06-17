@@ -17,6 +17,10 @@ router = APIRouter(prefix="/datasets", tags=["datasets"])
 @router.post("/", response_model=DatasetBasicInfo)
 @limiter.limit("15/minute")
 async def upload_dataset(request: Request, file: UploadFile = File(...), session: Session = Depends(get_session)):
+    """
+    Upload a CSV file as a new dataset.
+    Returns basic info about the created dataset.
+    """
     filename, filepath, size, df = save_csv(file)
     dataset = Dataset(filename=filename, filepath=filepath, size=size)
     session.add(dataset)
@@ -29,6 +33,9 @@ async def upload_dataset(request: Request, file: UploadFile = File(...), session
 @router.get("/", response_model=list[DatasetBasicInfo])
 @limiter.limit("15/minute")
 async def list_dataset(request: Request, session: Session = Depends(get_session)):
+    """
+    List all uploaded datasets with basic information.
+    """
     statement = select(Dataset)
     return session.exec(statement).all()
 
@@ -36,6 +43,10 @@ async def list_dataset(request: Request, session: Session = Depends(get_session)
 @router.get("/{dataset_id}/", response_model=DatasetInfo)
 @limiter.limit("15/minute")
 async def info_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+    """
+    Get detailed info (filename, size, etc) for a specific dataset by ID.
+    Returns 404 if dataset not found.
+    """
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
@@ -45,6 +56,10 @@ async def info_dataset(request: Request, dataset_id: int, session: Session = Dep
 @router.delete("/{dataset_id}/")
 @limiter.limit("15/minute")
 async def delete_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+    """
+    Delete a dataset by ID, including removing the stored file and in-memory data.
+    Returns success or 404 if dataset not found.
+    """
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
@@ -61,6 +76,10 @@ async def delete_dataset(request: Request, dataset_id: int, session: Session = D
 @router.get("/{dataset_id}/excel/")
 @limiter.limit("15/minute")
 async def export_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+    """
+    Export a dataset as an Excel file download.
+    Returns 404 if dataset not found.
+    """
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
@@ -75,7 +94,11 @@ async def export_dataset(request: Request, dataset_id: int, session: Session = D
 
 @router.get("/{dataset_id}/stats/")
 @limiter.limit("15/minute")
-async def export_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+async def stats_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+    """
+    Return dataset statistics as JSON (using pandas df.describe()).
+    Returns 404 if dataset not found.
+    """
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})
@@ -87,7 +110,11 @@ async def export_dataset(request: Request, dataset_id: int, session: Session = D
 
 @router.get("/{dataset_id}/plot/")
 @limiter.limit("15/minute")
-async def export_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+async def plot_dataset(request: Request, dataset_id: int, session: Session = Depends(get_session)):
+    """
+    Generate and return a PDF of histograms for numeric columns in the dataset.
+    Returns 404 if dataset not found.
+    """
     dataset = session.get(Dataset, dataset_id)
     if not dataset:
         return JSONResponse(status_code=404, content={"detail": "Dataset not found"})

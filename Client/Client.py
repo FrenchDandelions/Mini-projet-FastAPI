@@ -1,15 +1,35 @@
-from utils import Argument, send_request
+from .utils import Argument, send_request
 import os
 
 
 class Client:
     def __init__(self, arg: str = None):
+        """
+        Initialize the Client instance by parsing command line arguments.
+
+        Args:
+            arg (str, optional): Argument string to be parsed. Defaults to None.
+
+        Attributes:
+            args: Parsed arguments from Argument class.
+            command (str): The command extracted from the parsed arguments.
+        """
         self.args = Argument(arg).args
         self.command = self.args.command
 
     
     def run(self):
-        """  """
+        """
+        Execute the command method based on the parsed command argument.
+
+        This method dynamically calls the corresponding dataset-related method
+        using the `command` argument. It passes `ID` or `path` parameters if
+        provided in the arguments. Raises NotImplementedError if the command
+        method does not exist.
+
+        Raises:
+            NotImplementedError: If no method is implemented for the given command.
+        """
         method = getattr(self, f'{self.command}_dataset', None)
         if not method:
             raise NotImplementedError(f'Method not implemented for command: {self.command}')
@@ -21,7 +41,7 @@ class Client:
         else:
             res = method()
         # print(res)
-        return
+        return res
 
 
     @staticmethod
@@ -37,7 +57,7 @@ class Client:
             endpoint (str): The endpoint to hit (default = '/datasets/').
 
         Returns:
-            dict: JSON response containing the list of the datasets.
+            dict: JSON response containing the list of the datasets or error info.
         """
         response = send_request(base_url=url, endpoint=endpoint)
         print("Response status code:", response.status_code)
@@ -94,6 +114,21 @@ class Client:
     def info_dataset(url: str = "http://localhost:8000",
                         endpoint: str = "/datasets/",
                         ID: str = None):
+        """
+        Custom Client static method to send a GET request to
+        retrieve metadata information about a specific dataset.
+
+        Parameters:
+            url      (str): The base URL of the API server (default = 'http://localhost:8000').
+            endpoint (str): The endpoint to hit (default = '/datasets/').
+            ID       (str): ID of the dataset to retrieve info for.
+
+        Returns:
+            dict: JSON response containing the dataset metadata or error info.
+
+        Raises:
+            ValueError: If no dataset ID is provided.
+        """
         if ID is None:
             raise ValueError("No dataset id was given")
         endpoint += ID.rstrip("/") + "/"
@@ -112,6 +147,21 @@ class Client:
     def delete_dataset(url: str = "http://localhost:8000",
                         endpoint: str = "/datasets/",
                         ID: str = None):
+        """
+        Custom Client static method to send a DELETE request to
+        remove a specific dataset from the server.
+
+        Parameters:
+            url      (str): The base URL of the API server (default = 'http://localhost:8000').
+            endpoint (str): The endpoint to hit (default = '/datasets/').
+            ID       (str): ID of the dataset to delete.
+
+        Returns:
+            dict: JSON response indicating success or failure or error info.
+
+        Raises:
+            ValueError: If no dataset ID is provided.
+        """
         if ID is None:
             raise ValueError("No dataset id was given")
         endpoint += ID.rstrip("/") + "/"
@@ -132,6 +182,21 @@ class Client:
     def export_dataset(url: str = "http://localhost:8000",
                         endpoint: str = "/datasets/",
                         ID: str = None):
+        """
+        Custom Client static method to send a GET request to
+        export a dataset in Excel format (.xlsx) and save it locally.
+
+        Parameters:
+            url      (str): The base URL of the API server (default = 'http://localhost:8000').
+            endpoint (str): The endpoint to hit (default = '/datasets/').
+            ID       (str): ID of the dataset to export.
+
+        Returns:
+            Response: HTTP response containing the file data or error info.
+
+        Raises:
+            ValueError: If no dataset ID is provided.
+        """
         if ID is None:
             raise ValueError("No dataset id was given")
         endpoint += ID.rstrip("/") + "/excel/"
@@ -156,6 +221,21 @@ class Client:
     def stats_dataset(url: str = "http://localhost:8000",
                         endpoint: str = "/datasets/",
                         ID: str = None):
+        """
+        Custom Client static method to send a GET request to
+        retrieve statistical information about a dataset.
+
+        Parameters:
+            url      (str): The base URL of the API server (default = 'http://localhost:8000').
+            endpoint (str): The endpoint to hit (default = '/datasets/').
+            ID       (str): ID of the dataset to get statistics for.
+
+        Returns:
+            dict: JSON response containing statistical summaries or error info.
+
+        Raises:
+            ValueError: If no dataset ID is provided.
+        """
         if ID is None:
             raise ValueError("No dataset id was given")
         endpoint += ID.rstrip("/") + "/stats/"
@@ -174,6 +254,21 @@ class Client:
     def plot_dataset(url: str = "http://localhost:8000",
                         endpoint: str = "/datasets/",
                         ID: str = None):
+        """
+        Custom Client static method to send a GET request to
+        retrieve a PDF plot visualization of a dataset and save it locally.
+
+        Parameters:
+            url      (str): The base URL of the API server (default = 'http://localhost:8000').
+            endpoint (str): The endpoint to hit (default = '/datasets/').
+            ID       (str): ID of the dataset to plot.
+
+        Returns:
+            Response: HTTP response containing the PDF file or error info.
+
+        Raises:
+            ValueError: If no dataset ID is provided.
+        """
         if ID is None:
             raise ValueError("No dataset id was given")
         endpoint += ID.rstrip("/") + "/plot/"
