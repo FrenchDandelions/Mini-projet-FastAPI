@@ -1,6 +1,15 @@
+
 # Server
 
-How to run the server:
+## Prerequisites
+
+Before running the server, please ensure you have the following installed on your system:
+
+* **make**
+* **Docker**
+* **Docker Compose**
+
+## How to run the server:
 
 - Build the Docker images:
   make build
